@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Raw Data - Vestavio Dashboard</title>
+  <!-- Favicon -->
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+  <!-- Bootstrap CSS (matching action_logs.html version) -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  <!-- Main styles.css for sidebar & dark theme -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <style>
+    /* Match the dark background from action_logs.html */
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+    /* Outer container for raw data, similar to logs-container */
+    .raw-data-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    /* Card styling for each endpoint box */
+    .card {
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      margin-bottom: 1rem;
+    }
+    .card-header {
+      background-color: #333;
+      border-bottom: 1px solid #444;
+      color: #00ffe0; /* Teal heading to match logs style */
+      font-weight: 600;
+    }
+    .card-body {
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+    }
+    /* Pre block for JSON data */
+    pre {
+      background-color: #1f1f1f;
+      color: #e0e0e0;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <!-- Toggle Button (hamburger icon) -->
+    <button id="sidebarToggle" class="toggle-btn">☰</button>
+
+    <div class="sidebar-logo">
+      <!-- Larger logo, same approach as action_logs.html -->
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vestavio Logo" style="max-width:100%; height:auto;">
+    </div>
+
+    <ul class="nav-links">
+      <!-- Main link: Dashboard -->
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+
+      <!-- View Section -->
+      <li>
+        <span>View</span>
+        <ul>
+          <li><a href="{{ url_for('logs') }}">System Logs</a></li>
+          <li><a href="{{ url_for('action_logs') }}">Action Logs</a></li>
+          <li><a href="{{ url_for('raw_data') }}">Raw Data</a></li>
+        </ul>
+      </li>
+
+      <!-- Manage Section -->
+      <li>
+        <span>Manage</span>
+        <ul>
+          <li><a href="/subscription">Subscription</a></li>
+          <li><a href="/api_access">API Access</a></li>
+        </ul>
+      </li>
+
+      <!-- Logout -->
+      <li>
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" class="logout-button">Logout</button>
+        </form>
+      </li>
+    </ul>
+  </div>
+  <!-- END LEFT SIDEBAR -->
+
+  <!-- MAIN CONTENT WRAPPER -->
+  <div id="dashboardMain">
+    <div class="container mt-4">
+      <div class="raw-data-container">
+        <!-- Page Title -->
+        <h2 class="text-center mb-4" style="color: #00ffe0;">Raw Data</h2>
+        <p class="text-center mb-4" style="max-width: 700px; margin: 0 auto;">
+          <small>
+            Below is the raw JSON output from key endpoints; this is to provide full transparency, and to eliminate the need to run commands in terminal. Use case may display "warehouse", our default use case. No need to worry, the system is still working. Click "Refresh" to re-fetch data.
+          </small>
+        </p>
+
+        <!-- Refresh & Back Buttons and Timestamp -->
+        <div class="d-flex flex-column align-items-center mb-4">
+          <div class="d-flex justify-content-center mb-2">
+            <button class="btn btn-primary mr-3" onclick="location.reload()">Refresh</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+          </div>
+          <input type="hidden" id="userToken" value="{{ request.cookies.get('access_token') }}">
+          <p class="text-muted text-center mb-3">
+            Last Updated:
+            <span id="lastUpdated"></span>
+          </p>
+        </div>
+
+        <!-- /health Endpoint -->
+        <div class="card mb-4">
+          <div class="card-header">
+            /health Endpoint
+          </div>
+          <div class="card-body">
+            <pre>{{ aggregated.health | tojson(indent=2) }}</pre>
+          </div>
+        </div>
+
+        <!-- /metrics Endpoint -->
+        <div class="card mb-4">
+          <div class="card-header">
+            /metrics Endpoint
+          </div>
+          <div class="card-body">
+            <pre>{{ aggregated.metrics | tojson(indent=2) }}</pre>
+          </div>
+        </div>
+
+        <!-- /snapshot Endpoint -->
+        <div class="card mb-4">
+          <div class="card-header">
+            /snapshot Endpoint
+          </div>
+          <div class="card-body">
+            <pre>{{ aggregated.snapshot | tojson(indent=2) }}</pre>
+          </div>
+        </div>
+
+        <!-- /rl_predict Endpoint -->
+        <div class="card mb-4">
+          <div class="card-header">
+            /rl_predict Endpoint
+          </div>
+          <div class="card-body">
+            <pre>{{ aggregated.rl_predict | tojson(indent=2) }}</pre>
+          </div>
+        </div>
+
+      </div> <!-- end raw-data-container -->
+    </div> <!-- end container -->
+  </div> <!-- end #dashboardMain -->
+
+  <!-- JS & Scripts (matching action_logs.html approach) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

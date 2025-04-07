@@ -1,0 +1,21 @@
+{
+    "models": [
+        {
+            "name": "classification_model",
+            "version": "v1.0.0",
+            "path": "/Users/username/path/to/classification_model.joblib",
+            "metrics": {
+                "accuracy": 0.806,
+                "f1": 0.791
+            },
+            "parameters": {
+                "max_depth": 5,
+                "learning_rate": 0.01
+            },
+            "tags": {
+                "framework": "xgboost",
+                "env": "production"
+            }
+        }
+    ]
+}

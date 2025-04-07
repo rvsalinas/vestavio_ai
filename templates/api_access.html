@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>API Access - Vestavio</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  <!-- Include your main styles for the sidebar, etc. -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <style>
+    body {
+      background-color: #121212; 
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+    }
+    .api-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .api-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .api-header h2 {
+      color: #00ffe0;
+      font-weight: bold;
+    }
+    .api-token-box, .usage-box, .robot-hookup-box {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      padding: 20px;
+    }
+    .api-token-box h5,
+    .usage-box h5,
+    .robot-hookup-box h5 {
+      color: #00ffe0;
+      margin-bottom: 15px;
+    }
+    .form-control[readonly] {
+      background-color: #333;
+      color: #fff;
+      border: 1px solid #444;
+    }
+    pre {
+      background-color: #2a2a2a;
+      padding: 10px;
+      color: #fff;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- LEFT SIDEBAR (same as subscription.html) -->
+  <div class="sidebar" id="sidebar">
+    <!-- Toggle Button (hamburger icon) -->
+    <button id="sidebarToggle" class="toggle-btn">☰</button>
+
+    <div class="sidebar-logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vestavio Logo"
+           style="max-width:100%; height:auto;">
+    </div>
+
+    <ul class="nav-links">
+      <!-- Main link: Dashboard -->
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+
+      <!-- View Section -->
+      <li>
+        <span>View</span>
+        <ul>
+          <li><a href="{{ url_for('logs') }}">System Logs</a></li>
+          <li><a href="{{ url_for('action_logs') }}">Action Logs</a></li>
+          <li><a href="{{ url_for('raw_data') }}">Raw Data</a></li>
+        </ul>
+      </li>
+
+      <!-- Manage Section -->
+      <li>
+        <span>Manage</span>
+        <ul>
+          <li><a href="/subscription">Subscription</a></li>
+          <!-- New API Access link -->
+          <li><a href="/api_access">API Access</a></li>
+        </ul>
+      </li>
+
+      <!-- Logout -->
+      <li>
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" class="logout-button">Logout</button>
+        </form>
+      </li>
+    </ul>
+  </div>
+  <!-- END LEFT SIDEBAR -->
+
+  <!-- MAIN CONTENT WRAPPER -->
+  <div id="dashboardMain">
+    <div class="api-container">
+      <div class="api-header">
+        <h2>API Access</h2>
+      </div>
+
+      <!-- Introductory Info -->
+      <p class="mb-3 text-muted text-center" style="font-size: 0.9rem;">
+        This page provides your personal API token and basic usage instructions.
+        You can use the token in the <strong>Authorization</strong> header when calling our endpoints from external scripts or apps.
+      </p>
+
+      <!-- Current Token Display & Generate Button -->
+      <div class="api-token-box">
+        <h5>Your API Token</h5>
+
+        {% if user_token %}
+          <div class="form-group mb-3">
+            <label for="apiTokenInput" style="font-weight: bold;">Current Token:</label>
+            <input
+              type="text"
+              id="apiTokenInput"
+              class="form-control"
+              readonly
+              value="{{ user_token }}"
+            >
+          </div>
+          <p class="text-muted" style="font-size: 0.9rem;">
+            Keep your token secret. If you suspect it’s been compromised, click the button below to rotate (generate a new one).
+          </p>
+        {% else %}
+          <p class="text-muted mb-3" style="font-size: 0.9rem;">
+            You do not have a token yet. Click "Generate New Token" below to create one.
+          </p>
+        {% endif %}
+
+        <form action="{{ url_for('generate_api_token') }}" method="POST">
+          <button class="btn btn-primary" type="submit">Generate / Rotate Token</button>
+        </form>
+      </div>
+
+      <!-- Example Usage Section -->
+      <div class="usage-box">
+        <h5>Quick Example</h5>
+        <p class="text-muted" style="font-size: 0.9rem;">
+          Once you have your token, you can use it in any request to our secure endpoints.
+          For example, to fetch the latest sensor snapshot:
+        </p>
+        <pre>
+curl -X GET \
+  "http://18.224.230.196:5003/snapshot?robot_number=&page=1" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+        </pre>
+        <p class="text-muted" style="font-size: 0.9rem;">
+          Replace <code>YOUR_TOKEN_HERE</code> with your actual token from above.
+          That’s it! You’ll receive JSON data about your sensors and system status.
+        </p>
+      </div>
+
+      <!-- Step-by-step Hookup Instructions -->
+      <div class="robot-hookup-box">
+        <h5 style="color: #007bff;">How to Hook Up Your Robot</h5>
+        <p class="text-muted" style="font-size: 0.9rem;">
+          Below is a simple, step-by-step guide for hooking up a user’s robotic system to your software platform. We’ve kept it as straightforward as possible, so even a non-technical person can follow along.
+        </p>
+
+        <ol style="font-size: 0.9rem; line-height: 1.5;">
+          <li>
+            <strong style="color: #007bff;">Get Your Access Token</strong>
+            <ol type="a" style="margin-left: 20px;">
+              <li><strong>Sign In to the Dashboard:</strong> Log in to your company’s dashboard (the same place you normally view system health).</li>
+              <li><strong>Obtain Your Token:</strong> Once logged in, the software will generate a unique token (sometimes shown after login, or retrievable from an “API Keys” or “Token” page). This token is like a password your robot uses to communicate with the software.</li>
+            </ol>
+          </li>
+
+          <li class="mt-3">
+            <strong style="color: #007bff;">Add a Small “Robot Script” on Your Robot</strong>
+            <ol type="a" style="margin-left: 20px;">
+              <li><strong>Download or Copy the Script [SEE BELOW FOR SCRIPT]:</strong> Your software provider typically supplies a short Python script that sends your robot’s sensor data to the system.</li>
+              <li><strong>Insert Your Token:</strong> Open the script in a text editor and look for a line like <code>TOKEN = "your-token-here"</code>. Paste your actual token from step 1 in place of <code>"your-token-here"</code>.</li>
+              <li><strong>Specify Robot Details:</strong> If needed, add or edit lines for your robot’s name, sensor outputs, or other basic info. This is how the script knows which data to send.</li>
+            </ol>
+          </li>
+
+          <li class="mt-3">
+            <strong style="color: #007bff;">Run the Script on the Robot</strong>
+            <ol type="a" style="margin-left: 20px;">
+              <li><strong>One-Time Setup:</strong> On the robot’s computer (or controller), open a terminal/command prompt and run <code>python robot_script.py</code> (or whichever command your script uses).</li>
+              <li><strong>Keep It Running:</strong> The script typically runs in the background, continually sending data. You only need to start it once. If the robot ever powers off, you’ll just re-run the same command when you turn it back on.</li>
+            </ol>
+          </li>
+
+          <li class="mt-3">
+            <strong style="color: #007bff;">See Data on Your Dashboard</strong>
+            <ol type="a" style="margin-left: 20px;">
+              <li><strong>Check Your Dashboard:</strong> Log back into your system’s web dashboard. You should see live sensor readings, system health, or other relevant stats from your robot.</li>
+              <li><strong>No Extra Terminal Commands Needed:</strong> Once the script is running on the robot, everything updates automatically in the dashboard. You can close your terminal if the script is set to run in the background.</li>
+            </ol>
+          </li>
+
+          <li class="mt-3">
+            <strong style="color: #007bff;">Troubleshooting</strong>
+            <ul style="margin-left: 20px;">
+              <li><strong>Token Errors:</strong> If you see an “Invalid Token” or “Unauthorized” error, re-check that you copied the token correctly into the script.</li>
+              <li><strong>No Data Appearing:</strong> Ensure the script is actually running on the robot’s side (it might need a screen or a background process like <code>tmux</code> or <code>nohup</code> to keep it alive).</li>
+              <li><strong>Robot Offline:</strong> If the robot powers off, re-run the same command from Step 3 once it’s back on.</li>
+            </ul>
+          </li>
+        </ol>
+
+        <p class="text-muted mt-3" style="font-size: 0.9rem;">
+          That’s it! Once your script is in place and running, the robot will continuously report to the software,
+          and you’ll see all the data in your dashboard. You don’t have to keep typing commands—just start the script
+          and let it run in the background.
+        </p>
+        </div>
+        </div> <!-- end #dashboardMain -->
+        
+        <!-- Full Robot Script -->
+        <div class="usage-box p-4 mb-4" style="background-color: #1e1e1e; border: 1px solid #333; border-radius: 6px;">
+          <h5 class="mb-3" style="color: #00ffe0;">Full Robot Script (robot_script.py)</h5>
+          <p class="text-muted" style="font-size: 0.9rem;">
+            Below is a minimal Python script that sends sensor data to your Vestavio system.
+            Replace the <strong>TOKEN</strong> and <strong>ENDPOINT</strong> if needed, then run it on your robot’s controller.
+            Stop it with Ctrl+C (or run it in a background process).
+          </p>
+          <pre style="background-color: #2a2a2a; padding: 10px; color: #fff; border-radius: 4px; overflow-x: auto;">
+        #!/usr/bin/env python3
+        """
+        robot_script.py
+        
+        A minimal Python script that sends sensor data to your Vestavio system. 
+        Works for any use case (9DOF, 6DOF, warehouse, etc.)—simply adjust 
+        which sensors you collect and post.
+        
+        No placeholders here—replace the token with your actual token, 
+        and adjust ENDPOINT if needed.
+        
+        Usage:
+          1) Ensure you have Python 3.x installed on your robot’s computer/controller.
+          2) Install requests if not present: pip install requests
+          3) Run: python robot_script.py
+          4) The script loops indefinitely, sending random data every few seconds.
+          5) Stop it with Ctrl+C (or run it in a background process like tmux or nohup).
+        """
+        
+        import requests
+        import random
+        import time
+        
+        # 1) Replace with your actual token from the /api_access page (no placeholders):
+        TOKEN = "INSERT API TOKEN FROM API ACCESS PAGE HERE, NOTE: KEEP QUOATATION MARKS"
+        
+        # 2) The /send_sensor_data endpoint on your Vestavio server:
+        ENDPOINT = "http://vestavio.app:5003/send_sensor_data"
+        
+        # Optional: If you have multiple robots, set a unique ID here
+        ROBOT_NUMBER = 1
+        
+        def generate_sensor_data():
+            """
+            Generates example sensor data. 
+            Replace or expand these with your actual DOF, velocity, or other sensors.
+            """
+            sensor_data = []
+        
+            # Example: 3 DOFs + 3 velocities for demonstration
+            dof_count = 3
+            for i in range(1, dof_count + 1):
+                sensor_data.append({
+                    "name": f"dof_{i}",
+                    "output": round(random.uniform(-1.0, 1.0), 3),
+                    "status": "Operational"
+                })
+                sensor_data.append({
+                    "name": f"vel_{i}",
+                    "output": round(random.uniform(0.0, 5.0), 3),
+                    "status": "Operational"
+                })
+        
+            # Example: add an energy_efficiency sensor
+            sensor_data.append({
+                "name": "energy_efficiency",
+                "output": round(random.uniform(50.0, 99.9), 2),
+                "status": "Operational"
+            })
+        
+            # Optionally add anomaly or faulty data to test
+            # sensor_data[0]["status"] = "Faulty"  # Uncomment to simulate a fault
+        
+            # You can add "robot_number" to each sensor if you want:
+            for s in sensor_data:
+                s["robot_number"] = ROBOT_NUMBER
+        
+            return sensor_data
+        
+        def post_sensor_data(sensor_data):
+            """
+            Sends the sensor data to the Vestavio /send_sensor_data endpoint 
+            with your token in the Authorization header.
+            """
+            headers = {
+                "Authorization": f"Bearer {TOKEN}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "sensor_data": sensor_data
+            }
+            try:
+                response = requests.post(ENDPOINT, json=payload, headers=headers, timeout=10)
+                response.raise_for_status()
+                print(f"[{time.strftime('%H:%M:%S')}] Data sent successfully. Response: {response.json()}")
+            except requests.exceptions.HTTPError as http_err:
+                print(f"[{time.strftime('%H:%M:%S')}] HTTP error occurred: {http_err}")
+            except Exception as e:
+                print(f"[{time.strftime('%H:%M:%S')}] Error sending data: {e}")
+        
+        def main():
+            print("Starting robot_script.py...")
+            print(f"Using token: {TOKEN[:15]}... (truncated for display)")
+            print(f"Posting to endpoint: {ENDPOINT}")
+            print("Press Ctrl+C to stop.")
+        
+            while True:
+                data = generate_sensor_data()
+                post_sensor_data(data)
+                time.sleep(5)  # Wait 5 seconds before sending next batch
+        
+        if __name__ == "__main__":
+            main()
+          </pre>
+        </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- scripts.js for sidebar toggling, etc. -->
+  <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

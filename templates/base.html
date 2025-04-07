@@ -1,0 +1,151 @@
+<!--
+File: base.html
+Location: /templates/base.html
+Purpose: Global layout with left sidebar (updated nav links) and optional top bar
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}Vestavio Dashboard{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Reference your main stylesheet and scripts -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</head>
+<body>
+
+  <!-- Left Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <!-- Toggle Button (hamburger icon) -->
+    <button id="sidebarToggle" class="toggle-btn">☰</button>
+
+    <div class="sidebar-logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vestavio Logo">
+    </div>
+
+    <!-- Navigation Links -->
+    <ul class="nav-links">
+      <!-- Dashboard -->
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+
+      <!-- View Section -->
+      <li>
+        <span>View</span>
+        <ul>
+          <!-- System Logs -->
+          <li><a href="{{ url_for('logs') }}">System Logs</a></li>
+          <!-- Action Logs -->
+          <li><a href="{{ url_for('action_logs') }}">Action Logs</a></li>
+          <!-- Raw Data -->
+          <li><a href="{{ url_for('raw_data') }}">Raw Data</a></li>
+        </ul>
+      </li>
+
+      <!-- Manage Section -->
+      <li>
+        <span>Manage</span>
+        <ul>
+          <li><a href="/subscription">Subscription</a></li>
+          <!-- New API Access link -->
+          <li><a href="/api_access">API Access</a></li>
+        </ul>
+      </li>
+
+      <!-- Logout -->
+      <li>
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" class="logout-button">Logout</button>
+        </form>
+      </li>
+    </ul>
+
+    <!-- System Optimization Section (Moved to Sidebar, Smaller Text) -->
+    <div
+      class="sidebar-optimization p-3"
+      style="font-size: 0.85rem;"
+    >
+      <section class="mb-4">
+        <!-- Use a smaller heading -->
+        <h4
+          style="
+            color: #00ffe0;
+            text-align: center;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+          "
+        >
+          System Optimization
+        </h4>
+        <p
+          class="text-center text-muted mb-4"
+          style="font-size: 0.85rem; line-height: 1.2;"
+        >
+          The system continuously optimizes conditions in the background, requiring no user input.
+          You can trust it to handle efficiency and stability autonomously.
+        </p>
+      </section>
+
+      {% if sensors|length > 0 %}
+      <section
+        class="p-3 mb-4 shadow-sm rounded dark-section"
+        style="font-size: 0.85rem;"
+      >
+        <h5
+          class="text-center mb-3 text-white"
+          style="font-size: 0.95rem;"
+        >
+          Recent Milestones
+        </h5>
+        <ul class="list-unstyled text-center text-muted">
+          <li>• Achieved a 5% energy cost reduction this week</li>
+          <li>• Automatically resolved last anomaly at {{ anomaly_resolved_time }}, no user action required</li>
+          <li>• Maintained 99.9% uptime for all critical sensors</li>
+        </ul>
+      </section>
+      {% else %}
+      <section
+        class="p-3 mb-4 shadow-sm rounded dark-section"
+        style="font-size: 0.85rem;"
+      >
+        <h5
+          class="text-center mb-3 text-white"
+          style="font-size: 0.95rem;"
+        >
+          Recent Milestones
+        </h5>
+        <p class="text-center text-muted">No milestones yet</p>
+      </section>
+      {% endif %}
+    </div>
+    <!-- End System Optimization Section -->
+
+  </div>
+  <!-- End Left Sidebar -->
+
+  <!-- Top Bar (Optional) -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1>Vestavio Dashboard</h1>
+    </div>
+    <div class="top-bar-right">
+      {# e.g., <a href="{{ url_for('profile') }}">Profile</a> #}
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <main id="dashboardMain" class="main-content">
+    {% block content %}
+    <!-- Child templates (e.g. dashboard.html) will inject their content here -->
+    {% endblock %}
+  </main>
+
+  <!-- Footer (Optional) -->
+  <footer class="footer">
+    <p>© 2025 Vestavio. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

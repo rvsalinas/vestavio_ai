@@ -1,0 +1,264 @@
+<!-- camera_feeds.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Camera Feeds</title>
+  <!-- Favicon (optional) -->
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+  <!-- Bootstrap CSS (optional) -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  <!-- Your main styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <style>
+    /* Basic dark styling, consistent with your overall theme */
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Container for the main camera area + preview bar */
+    .camera-layout {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      min-height: 400px; /* baseline for demonstration */
+      margin-bottom: 30px;
+    }
+
+    /* Main camera area on the left */
+    .camera-main-area {
+      flex: 1; 
+      border: 1px solid #333;
+      background-color: #1e1e1e;
+      position: relative;
+      min-height: 400px;
+      padding: 10px;
+    }
+    .camera-main-area h4 {
+      color: #00ffe0;
+    }
+    .camera-main-area .no-cameras-msg {
+      text-align: center;
+      margin-top: 50px;
+      font-size: 1.1rem;
+      color: #007bff;
+    }
+
+    /* Right sidebar or top bar for camera previews */
+    .camera-preview-bar {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      border: 1px solid #333;
+      background-color: #1e1e1e;
+      padding: 10px;
+      flex-wrap: wrap; /* so they don't overflow horizontally */
+    }
+
+    .preview-feed {
+      flex: 1;
+      background-color: #2a2a2a;
+      margin: 4px;
+      padding: 8px;
+      border-radius: 8px;
+      align-items: center;
+      border: 1px solid #444;
+      text-align: center;
+      position: relative;
+      min-width: 120px; /* small fallback */
+      height: 100px;
+      overflow: hidden;
+    }
+    .preview-feed h6 {
+      margin: 0 0 5px 0;
+      font-size: 0.85rem;
+      color: #54a0ff;
+    }
+    .preview-feed img,
+    .preview-feed iframe {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .preview-offline {
+      color: #888;
+      font-style: italic;
+    }
+
+    /* Chat container remains the same as your existing styles */
+    .chat-container {
+      max-height: 350px;
+      overflow-y: auto;
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      padding: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- LEFT SIDEBAR (NAVIGATION) -->
+  <div class="sidebar" id="sidebar">
+    <!-- Toggle Button (hamburger icon) -->
+    <button id="sidebarToggle" class="toggle-btn">☰</button>
+
+    <div class="sidebar-logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vestavio Logo"
+           style="max-width:100%; height:auto;">
+    </div>
+
+    <ul class="nav-links">
+      <!-- Main link: Dashboard -->
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+
+      <!-- View Section -->
+      <li>
+        <span>View</span>
+        <ul>
+          <li><a href="{{ url_for('camera_feeds') }}">Camera Feeds</a></li>
+          <li><a href="{{ url_for('logs') }}">System Logs</a></li>
+          <li><a href="{{ url_for('action_logs') }}">Action Logs</a></li>
+        </ul>
+      </li>
+
+      <!-- Manage Section -->
+      <li>
+        <span>Manage</span>
+        <ul>
+          <li><a href="/alerts">Alerts</a></li>
+          <li><a href="/subscription">Subscription</a></li>
+          <!-- New API Access link -->
+          <li><a href="/api_access">API Access</a></li>
+        </ul>
+      </li>
+
+      <!-- Logout -->
+      <li>
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" class="logout-button">Logout</button>
+        </form>
+      </li>
+    </ul>
+  </div>
+  <!-- END LEFT SIDEBAR -->
+
+  <!-- MAIN CONTENT WRAPPER -->
+  <div id="dashboardMain">
+    <!-- Title / Explanation -->
+    <div class="text-center mb-4">
+      <h2 style="color: #00ffe0;">Camera Feeds</h2>
+      <p style="max-width: 700px; margin: 0 auto;">
+        <small>
+          The first detected camera is automatically displayed below. 
+          Additional cameras appear in the preview section.
+        </small>
+      </p>
+    </div>
+
+    <!-- ========== Camera Preview Bar ========== -->
+    <div class="camera-preview-bar">
+      {% for i in range(4) %}
+        {% if preview_feeds|length > i %}
+          <!-- Show an <iframe> (or <img>) for each preview feed -->
+          <div
+            class="preview-feed"
+            id="previewFeed{{ i+1 }}"
+            style="cursor: move;"
+            draggable="true"
+          >
+            <h6>Camera {{ i+1 }}</h6>
+            <iframe
+              src="{{ preview_feeds[i] }}"
+              style="width: 100%; height: 100%; border: none; pointer-events: none;"
+              allowfullscreen
+            ></iframe>
+          </div>
+        {% else %}
+          <!-- Mark offline if no feed is available -->
+          <div
+            class="preview-feed"
+            id="previewFeed{{ i+1 }}"
+            style="cursor: move;"
+            draggable="true"
+          >
+            <h6>Camera {{ i+1 }}</h6>
+            <p class="preview-offline">None Detected.</p>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- ========== Main Camera Area ========== -->
+    <div class="camera-main-area" id="cameraMainArea">
+      {% if main_feed %}
+        <!-- If you have a streaming URL, you might prefer <iframe> -->
+        <iframe 
+          src="{{ main_feed }}" 
+          style="width:100%; height:100%; border:none;" 
+          allowfullscreen>
+        </iframe>
+      {% else %}
+        <span style="font-size: 1.2rem; color: #888;">
+          No cameras detected at this time.
+        </span>
+      {% endif %}
+    </div>
+
+    <!-- ========== System Chat Section ========== -->
+    <div class="glassmorphic-box w-100 my-3">
+      <!-- Hidden input for JWT token -->
+      <input type="hidden" id="userToken" value="{{ request.cookies.get('access_token') }}">
+
+      <!-- Title -->
+      <h2 style="color: #00ffe0; text-align: center;">System Chat</h2>
+      <p class="text-center text-muted mb-3">
+        Chat with your robot fleet—ask about anomalies, system health, or give commands.<br>
+        To initiate a user action, begin your command with '#':
+      </p>
+
+      <!-- Chat container -->
+      <div
+          id="chatContainer"
+          class="chat-container glassmorphic-box mb-3"
+          style="max-height: 200px; overflow-y: auto; background-color: #121212;"
+        >
+        <!-- Populated by scripts.js -->
+      </div>
+
+      <!-- Input row: Talk (left), text input (middle), Send (right) -->
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <button id="voiceBtn" class="btn btn-info" style="width:120px;">Talk</button>
+        </div>
+        <input
+          type="text"
+          id="chatInput"
+          class="form-control"
+          placeholder="Type your question or command..."
+        >
+        <div class="input-group-append">
+          <button id="sendChatBtn" class="btn btn-primary">Send</button>
+        </div>
+      </div>
+
+      <!-- Listening indicator -->
+      <div class="text-center mt-2" style="display: none;" id="voiceIndicator">
+        <small class="text-warning">Listening...</small>
+      </div>
+    </div>
+  </div> <!-- end #dashboardMain -->
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+  <script src="{{ url_for('static', filename='camera_feeds.js') }}"></script>
+</body>
+</html>

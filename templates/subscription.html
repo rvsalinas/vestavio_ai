@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Subscribe - RoboSense Infinity</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  <!-- Include your main styles for sidebar, etc. -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <style>
+    body {
+      background-color: #121212; 
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+    }
+    .subscription-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .subscription-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .subscription-header h2 {
+      color: #00ffe0; /* teal for heading */
+      font-weight: bold;
+    }
+    .selling-points {
+      margin-bottom: 30px;
+    }
+    .selling-points li {
+      margin-bottom: 8px;
+    }
+    /* Tiers Row */
+    .tiers-row {
+      margin-bottom: 30px;
+    }
+    .tier-box {
+      background-color: #2a2a2a;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      box-shadow: 0 0 5px rgba(0,0,0,0.4);
+    }
+    .tier-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #00ffe0;
+      margin-bottom: 10px;
+    }
+    .tier-price {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .subscribe-btn {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .subscribe-btn:last-child {
+      margin-bottom: 0;
+    }
+    /* Adjust for the "Contact" button in the last tier */
+    .contact-btn {
+      width: 100%;
+      background-color: #6c757d; /* or any color you'd like for "Contact" */
+      border: 1px solid #6c757d;
+    }
+  </style>
+</head>
+<body>
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <!-- Toggle Button (hamburger icon) -->
+    <button id="sidebarToggle" class="toggle-btn">☰</button>
+
+    <div class="sidebar-logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vestavio Logo"
+           style="max-width:100%; height:auto;">
+    </div>
+
+    <ul class="nav-links">
+      <!-- Main link: Dashboard -->
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+
+      <!-- View Section -->
+      <li>
+        <span>View</span>
+        <ul>
+          <li><a href="{{ url_for('logs') }}">System Logs</a></li>
+          <li><a href="{{ url_for('action_logs') }}">Action Logs</a></li>
+          <li><a href="{{ url_for('raw_data') }}">Raw Data</a></li>
+        </ul>
+      </li>
+
+      <!-- Manage Section -->
+      <li>
+        <span>Manage</span>
+        <ul>
+          <li><a href="/subscription">Subscription</a></li>
+          <!-- New API Access link -->
+          <li><a href="/api_access">API Access</a></li>
+        </ul>
+      </li>
+
+      <!-- Logout -->
+      <li>
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" class="logout-button">Logout</button>
+        </form>
+      </li>
+    </ul>
+  </div>
+  <!-- END LEFT SIDEBAR -->
+
+  <!-- MAIN CONTENT WRAPPER -->
+  <div id="dashboardMain">
+    <div class="subscription-container">
+      <!-- Product Name -->
+      <div class="subscription-header">
+        <h2>RoboSense Infinity</h2>
+      </div>
+
+      <!-- Selling Points -->
+      <ul class="selling-points">
+        <li><strong>Real-Time Decision Making:</strong> Instantly adapt to changing environments, ensuring safe and optimal robot actions.</li>
+        <li><strong>Sensor-Fusion & Vision:</strong> Combine multi-sensor data with advanced computer vision to enhance situational awareness.</li>
+        <li><strong>Reinforcement Learning:</strong> Continuously improve your robots’ performance with self-learning algorithms.</li>
+        <li><strong>Predictive Maintenance:</strong> Proactively detect and resolve mechanical or operational issues before failures occur.</li>
+        <li><strong>Energy Efficiency Optimization:</strong> Save on power costs and reduce environmental impact across diverse robot fleets.</li>
+      </ul>
+
+      <!-- Tiers -->
+      <div class="row tiers-row text-center">
+        <!-- 1 Robot, Free -->
+        <div class="offset-md-1 col-md-2 tier-box">
+          <div class="tier-title">1 Robot</div>
+          <div class="tier-price">Free</div>
+          <a href="https://buy.stripe.com/cN28yW8WS37B1wIfZ0" class="btn btn-primary subscribe-btn">Subscribe</a>
+        </div>
+        <!-- 2 Robots, $20 -->
+        <div class="col-md-2 tier-box">
+          <div class="tier-title">2 Robots</div>
+          <div class="tier-price">$20</div>
+          <a href="https://buy.stripe.com/14kbL8c94cIbcbm7sv" class="btn btn-primary subscribe-btn">Subscribe</a>
+        </div>
+        <!-- 3 Robots, $35 -->
+        <div class="col-md-2 tier-box">
+          <div class="tier-title">3 Robots</div>
+          <div class="tier-price">$35</div>
+          <a href="https://buy.stripe.com/cN2g1o1uqdMf3EQ6os" class="btn btn-primary subscribe-btn">Subscribe</a>
+        </div>
+        <!-- 4 Robots, $45 -->
+        <div class="col-md-2 tier-box">
+          <div class="tier-title">4 Robots</div>
+          <div class="tier-price">$45</div>
+          <a href="https://buy.stripe.com/00g4iG3Cy5fJ5MYcMR" class="btn btn-primary subscribe-btn">Subscribe</a>
+        </div>
+        <!-- 5+ Robots, Contact -->
+        <div class="col-md-2 tier-box">
+          <div class="tier-title">5+ Robots</div>
+          <div class="tier-price">Contact</div>
+          <a href="https://vestavio.com/contact" class="btn contact-btn">Contact</a>
+        </div>
+      </div> <!-- end row -->
+
+      <!-- Manage Subscription + Back to Dashboard -->
+      <div class="d-flex justify-content-center mt-3">
+        <a href="{{ url_for('customer_portal') }}" class="btn btn-info mr-3">Manage Subscription</a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+      </div>
+
+    </div> <!-- end subscription-container -->
+  </div> <!-- end #dashboardMain -->
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- scripts.js for sidebar toggling, etc. -->
+  <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

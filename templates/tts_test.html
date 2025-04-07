@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>TTS Test</title>
+</head>
+<body style="background-color:#333; color:#fff; font-family:sans-serif;">
+  <h1>Minimal TTS Test Page</h1>
+  <p>If your browser supports TTS, clicking the button below should say “Hello from TTS test page.”</p>
+
+  <button id="speakBtn" style="padding:10px 20px; cursor:pointer;">
+    Speak
+  </button>
+
+  <script>
+    const speakBtn = document.getElementById('speakBtn');
+
+    speakBtn.addEventListener('click', () => {
+      const utterance = new SpeechSynthesisUtterance("Hello from TTS test page");
+      
+      // Optional logging to confirm speech started/ended
+      utterance.onstart = () => console.log("Speech started");
+      utterance.onend = () => console.log("Speech ended");
+      utterance.onerror = (err) => console.log("Speech error:", err);
+
+      speechSynthesis.speak(utterance);
+    });
+  </script>
+</body>
+</html>

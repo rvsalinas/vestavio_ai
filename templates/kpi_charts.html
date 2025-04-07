@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KPI Charts</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+  <!-- Plotly.js for charting -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+  <!-- Bootstrap (optional for styling) -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  <!-- Include your main styles for sidebar, etc. -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <style>
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+      font-family: "Helvetica", Arial, sans-serif;
+    }
+    /* Container for the content area (excluding sidebar) */
+    #dashboardMain .charts-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    h2 {
+      color: #00ffe0; /* bright teal for heading */
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .range-form {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .range-form select {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      border: 1px solid #333;
+    }
+    /* Individual chart containers */
+    .chart-box {
+      margin-bottom: 30px;
+    }
+    .chart-title {
+      color: #00ffe0;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .chart-canvas {
+      width: 100%;
+      height: 400px; 
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <!-- Toggle Button (hamburger icon) -->
+    <button id="sidebarToggle" class="toggle-btn">☰</button>
+
+    <div class="sidebar-logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vestavio Logo"
+           style="max-width:100%; height:auto;">
+    </div>
+
+    <ul class="nav-links">
+      <!-- Main link: Dashboard -->
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+
+      <!-- View Section -->
+      <li>
+        <span>View</span>
+        <ul>
+          <li><a href="{{ url_for('camera_feeds') }}">Camera Feeds</a></li>
+          <li><a href="{{ url_for('logs') }}">System Logs</a></li>
+          <li><a href="{{ url_for('action_logs') }}">Action Logs</a></li>
+          <li><a href="{{ url_for('kpi_charts') }}">KPI Charts</a></li>
+        </ul>
+      </li>
+
+      <!-- Manage Section -->
+      <li>
+        <span>Manage</span>
+        <ul>
+          <li><a href="/alerts">Alerts</a></li>
+          <li><a href="/subscription">Subscription</a></li>
+          <!-- New API Access link -->
+          <li><a href="/api_access">API Access</a></li>
+        </ul>
+      </li>
+
+      <!-- Logout -->
+      <li>
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" class="logout-button">Logout</button>
+        </form>
+      </li>
+    </ul>
+  </div>
+  <!-- END LEFT SIDEBAR -->
+
+  <!-- MAIN CONTENT WRAPPER -->
+  <div id="dashboardMain">
+    <div class="charts-container">
+
+      <!-- Page Title -->
+      <h2>User KPI Charts</h2>
+
+      <!-- Optional Range Selector (Day/Week/Month) -->
+      <form method="GET" action="/kpi_charts" class="range-form">
+        <label for="rangeSelect" class="mr-2">Range:</label>
+        <select name="range" id="rangeSelect" class="mr-2">
+          <option value="day"   {% if current_range == 'day'   %}selected{% endif %}>1 Day</option>
+          <option value="week"  {% if current_range == 'week'  %}selected{% endif %}>1 Week</option>
+          <option value="month" {% if current_range == 'month' %}selected{% endif %}>1 Month</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Go</button>
+      </form>
+
+      <!-- Chart 1: Avg Efficiency -->
+      <div class="chart-box">
+        <h3 class="chart-title">Average Efficiency Over Time</h3>
+        <div id="chartAvgEff" class="chart-canvas"></div>
+      </div>
+
+      <!-- Chart 2: Energy Saved -->
+      <div class="chart-box">
+        <h3 class="chart-title">Energy Saved Over Time</h3>
+        <div id="chartEnergySaved" class="chart-canvas"></div>
+      </div>
+
+      <!-- Chart 3: System Health -->
+      <div class="chart-box">
+        <h3 class="chart-title">System Health Over Time</h3>
+        <div id="chartSystemHealth" class="chart-canvas"></div>
+      </div>
+
+      <!-- Back to Dashboard button -->
+      <div class="text-center mt-3">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+      </div>
+
+    </div> <!-- end .charts-container -->
+  </div> <!-- end #dashboardMain -->
+
+  <script>
+    // Convert Python data to JS arrays
+    const timestamps          = JSON.parse('{{ kpi_data.timestamps|tojson }}') || [];
+    const avgEffHistory       = JSON.parse('{{ kpi_data.avg_eff_history|tojson }}') || [];
+    const energySavedHistory  = JSON.parse('{{ kpi_data.energy_saved_history|tojson }}') || [];
+    const systemHealthHistory = JSON.parse('{{ kpi_data.system_health_history|tojson }}') || [];
+
+    // 1) Avg Efficiency Chart
+    const traceAvgEff = {
+      x: timestamps,
+      y: avgEffHistory,
+      mode: 'lines',
+      line: { color: '#54a0ff' },
+      name: 'Avg Efficiency (%)'
+    };
+    const layoutAvgEff = {
+      paper_bgcolor: '#1e1e1e',
+      plot_bgcolor: '#1e1e1e',
+      font: { color: '#e0e0e0' },
+      xaxis: { title: 'Timestamp' },
+      yaxis: { title: 'Efficiency (%)', range: [0, 100] }
+    };
+    Plotly.newPlot('chartAvgEff', [traceAvgEff], layoutAvgEff, { responsive: true });
+
+    // 2) Energy Saved Chart
+    const traceEnergySaved = {
+      x: timestamps,
+      y: energySavedHistory,
+      mode: 'lines',
+      line: { color: '#f0e130' },
+      name: 'Energy Saved'
+    };
+    const layoutEnergySaved = {
+      paper_bgcolor: '#1e1e1e',
+      plot_bgcolor: '#1e1e1e',
+      font: { color: '#e0e0e0' },
+      xaxis: { title: 'Timestamp' },
+      yaxis: { title: 'Energy Saved (units)' }
+    };
+    Plotly.newPlot('chartEnergySaved', [traceEnergySaved], layoutEnergySaved, { responsive: true });
+
+    // 3) System Health Chart
+    const traceSystemHealth = {
+      x: timestamps,
+      y: systemHealthHistory,
+      mode: 'lines',
+      line: { color: '#ff00ff' },
+      name: 'System Health Score'
+    };
+    const layoutSystemHealth = {
+      paper_bgcolor: '#1e1e1e',
+      plot_bgcolor: '#1e1e1e',
+      font: { color: '#e0e0e0' },
+      xaxis: { title: 'Timestamp' },
+      yaxis: { title: 'Health Score', range: [0, 100] }
+    };
+    Plotly.newPlot('chartSystemHealth', [traceSystemHealth], layoutSystemHealth, { responsive: true });
+  </script>
+
+  <!-- Optional: jQuery, Bootstrap JS, and your scripts.js for sidebar toggling -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Alert Preferences</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  <!-- Include your main styles for sidebar, etc. -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <style>
+    body {
+      background-color: #121212; 
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+    }
+    .alerts-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .form-control {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      border: 1px solid #333;
+    }
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    a {
+      color: #90caf9;
+      text-decoration: none;
+    }
+    a:hover {
+      color: #54a0ff;
+    }
+  </style>
+</head>
+<body>
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <!-- Toggle Button (hamburger icon) -->
+    <button id="sidebarToggle" class="toggle-btn">☰</button>
+
+    <div class="sidebar-logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vestavio Logo"
+           style="max-width:100%; height:auto;">
+    </div>
+
+    <ul class="nav-links">
+      <!-- Main link: Dashboard -->
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+
+      <!-- View Section -->
+      <li>
+        <span>View</span>
+        <ul>
+          <li><a href="{{ url_for('logs') }}">System Logs</a></li>
+          <li><a href="{{ url_for('action_logs') }}">Action Logs</a></li>
+        </ul>
+      </li>
+
+      <!-- Manage Section -->
+      <li>
+        <span>Manage</span>
+        <ul>
+          <li><a href="/alerts">Alerts</a></li>
+          <li><a href="/subscription">Subscription</a></li>
+          <!-- New API Access link -->
+          <li><a href="/api_access">API Access</a></li>
+        </ul>
+      </li>
+
+      <!-- Logout -->
+      <li>
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" class="logout-button">Logout</button>
+        </form>
+      </li>
+    </ul>
+  </div>
+  <!-- END LEFT SIDEBAR -->
+
+  <!-- MAIN CONTENT WRAPPER -->
+  <div id="dashboardMain">
+    <div class="container mt-5">
+      <div class="alerts-container">
+        <h1 class="text-center mb-4" style="color: #00ffe0;">Alert Preferences</h1>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert alert-success alert-dismissible fade show" id="flashMessage" role="alert">
+              {{ messages[0] }}
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <script>
+              // Auto-hide the message after 3 seconds
+              setTimeout(function() {
+                var flash = document.getElementById('flashMessage');
+                if (flash) {
+                  flash.classList.remove('show');
+                }
+              }, 3000);
+            </script>
+          {% endif %}
+        {% endwith %}
+
+        <!-- IMPORTANT: POST to /alerts (same route) instead of /update_alerts -->
+        <form method="POST" action="{{ url_for('alerts') }}">
+
+          <div class="form-group">
+            <!-- Informational Anomalies (Minor) -->
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox"
+                     id="informationalAlerts"
+                     name="alerts"
+                     value="informational"
+                     {% if user_settings and user_settings.preferences and 'informational' in user_settings.preferences %}checked{% endif %}>
+              <label class="form-check-label text-white" for="informationalAlerts">
+                Informational Anomalies (Minor)
+              </label>
+            </div>
+
+            <!-- Warning Anomalies (Moderate) -->
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox"
+                     id="warningAlerts"
+                     name="alerts"
+                     value="warning"
+                     {% if user_settings and user_settings.preferences and 'warning' in user_settings.preferences %}checked{% endif %}>
+              <label class="form-check-label text-white" for="warningAlerts">
+                Warning Anomalies (Moderate)
+              </label>
+            </div>
+
+            <!-- Critical Anomalies (Severe) -->
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox"
+                     id="criticalAlerts"
+                     name="alerts"
+                     value="critical"
+                     {% if user_settings and user_settings.preferences and 'critical' in user_settings.preferences %}checked{% endif %}>
+              <label class="form-check-label text-white" for="criticalAlerts">
+                Critical Anomalies (Severe)
+              </label>
+            </div>
+
+            <!-- Energy Efficiency Alerts -->
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox"
+                     id="energyEfficiencyAlerts"
+                     name="alerts"
+                     value="energy_efficiency"
+                     {% if user_settings and user_settings.preferences and 'energy_efficiency' in user_settings.preferences %}checked{% endif %}>
+              <label class="form-check-label text-white" for="energyEfficiencyAlerts">
+                Energy Efficiency Alerts
+              </label>
+            </div>
+
+            <!-- Predictive Maintenance Alerts -->
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox"
+                     id="predictiveMaintenanceAlerts"
+                     name="alerts"
+                     value="predictive_maintenance"
+                     {% if user_settings and user_settings.preferences and 'predictive_maintenance' in user_settings.preferences %}checked{% endif %}>
+              <label class="form-check-label text-white" for="predictiveMaintenanceAlerts">
+                Predictive Maintenance Alerts
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Save Preferences</button>
+        </form>
+
+        <div class="text-center mt-4">
+          <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+      </div> <!-- end alerts-container -->
+    </div>
+  </div> <!-- end #dashboardMain -->
+
+  <!-- jQuery and Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- scripts.js for sidebar toggling, etc. -->
+  <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

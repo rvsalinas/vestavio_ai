@@ -1,0 +1,536 @@
+<!-- dashboard.html (head section) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Energy Optimization Dashboard</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <!-- Plotly.js for charts -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <!-- Toggle Button (hamburger icon) -->
+    <button id="sidebarToggle" class="toggle-btn">☰</button>
+
+    <div class="sidebar-logo">
+      <img 
+        src="{{ url_for('static', filename='images/logo.png') }}" 
+        alt="Vestavio Logo"
+        style="max-width:100%; height:auto;">
+    </div>
+
+    <!-- Navigation Links -->
+    <ul class="nav-links">
+      <!-- Dashboard -->
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+
+      <!-- View Section -->
+      <li>
+        <span>View</span>
+        <ul>
+          <li><a href="{{ url_for('logs') }}">System Logs</a></li>
+          <li><a href="{{ url_for('action_logs') }}">Action Logs</a></li>
+          <li><a href="{{ url_for('raw_data') }}">Raw Data</a></li>
+        </ul>
+      </li>
+
+      <!-- Manage Section -->
+      <li>
+        <span>Manage</span>
+        <ul>
+          <li><a href="/subscription">Subscription</a></li>
+          <!-- New API Access link -->
+          <li><a href="/api_access">API Access</a></li>
+        </ul>
+      </li>
+
+      <!-- Logout -->
+      <li>
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" class="logout-button">Logout</button>
+        </form>
+      </li>
+    </ul>
+
+    <!-- System Optimization Section -->
+    <div
+      class="sidebar-optimization p-3"
+      style="font-size: 0.85rem;"
+    >
+      <section class="mb-4">
+        <h4
+          style="
+            color: #00ffe0;
+            text-align: center;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+          "
+        >
+          System Optimization
+        </h4>
+        <p
+          class="text-center text-muted mb-4"
+          style="font-size: 0.85rem; line-height: 1.2;"
+        >
+          The system continuously optimizes conditions in the background, requiring no user input.
+          You can trust it to handle efficiency and stability autonomously.
+        </p>
+      </section>
+
+      {% if sensors|length > 0 %}
+      <section class="p-3 mb-4 shadow-sm rounded dark-section">
+        <h5
+          class="text-center mb-3 text-white"
+          style="font-size: 0.95rem;"
+        >
+          Recent Milestones
+        </h5>
+        <ul class="list-unstyled text-center text-muted">
+          <li>• Achieved a 5% energy cost reduction this week</li>
+          <li>• Automatically resolved last anomaly at {{ anomaly_resolved_time }}, no user action required</li>
+          <li>• Maintained 99.9% uptime for all critical sensors</li>
+        </ul>
+      </section>
+      {% else %}
+      <section class="p-3 mb-4 shadow-sm rounded dark-section">
+        <h5
+          class="text-center mb-3 text-white"
+          style="font-size: 0.95rem;"
+        >
+          Recent Milestones
+        </h5>
+        <p class="text-center text-muted">
+          No milestones yet
+        </p>
+      </section>
+      {% endif %}
+    </div>
+    <!-- End System Optimization Section -->
+  </div>
+  <!-- END LEFT SIDEBAR -->
+
+  <!-- MAIN CONTENT WRAPPER -->
+  <div id="dashboardMain">
+    {% if not is_authenticated %}
+      <div class="container mt-5">
+        <!-- Centered favicon or small logo -->
+        <div class="text-center mb-3">
+          <img 
+            src="{{ url_for('static', filename='favicon.ico') }}" 
+            alt="Vestavio Icon" 
+            style="width: 64px; height: 64px;"
+          >
+        </div>
+        <h2 class="text-center text-white">Welcome to Vestavio Dashboard!</h2>
+        <p class="text-center text-muted">
+          Please <a href="{{ url_for('login') }}">log in</a> to view your dashboard data.
+        </p>
+      </div>
+
+      <!-- Login Modal -->
+      <div class="modal fade" id="loginModal" tabindex="-1" role="dialog"
+           aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="loginModalLabel">Please Log In</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>You must log in to access your dashboard. Click the button below to go to the login page.</p>
+            </div>
+            <div class="modal-footer">
+              <a href="{{ url_for('login') }}" class="btn btn-primary">Go to Login</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        $(document).ready(function(){
+          $('#loginModal').modal('show');
+        });
+      </script>
+    {% else %}
+
+      <!-- Greeting + Use Case Selector Row (top of the dashboard) -->
+      <div class="container mt-3">
+        <div class="row align-items-center">
+          <!-- Left Column: Welcome, [username]! -->
+          <div class="col-md-6 text-left">
+            <h3 class="mb-0" style="color: #007bff;">Welcome, {{ username }}!</h3>
+          </div>
+          <!-- Right Column: Use Case Selector and Alerts Toggle -->
+          <div class="col-md-6 text-right">
+            <form id="useCaseForm" class="d-inline-block">
+              <label for="useCaseSelect" class="text-white mr-2">Current Use Case:</label>
+              <select id="useCaseSelect" name="use_case" class="form-control d-inline-block" style="width: auto;">
+                <option value="unspecified" {% if not use_case or use_case|lower == 'unspecified' %}selected{% endif %}>Unspecified</option>
+                <option value="drone" {% if use_case|lower == 'drone' %}selected{% endif %}>Drone</option>
+                <option value="6dof" {% if use_case|lower == '6dof' %}selected{% endif %}>6DOF</option>
+                <option value="9dof" {% if use_case|lower == '9dof' %}selected{% endif %}>9DOF</option>
+                <option value="warehouse" {% if use_case|lower == 'warehouse' %}selected{% endif %}>Warehouse</option>
+                <option value="urban" {% if use_case|lower == 'urban' %}selected{% endif %}>Urban</option>
+              </select>
+            </form>
+            <div class="d-inline-block ml-3">
+              <label for="alertToggle" class="text-white mr-1">Alerts:</label>
+              <input type="checkbox" id="alertToggle" name="email_alerts" value="true" {% if alerts_enabled %}checked="checked"{% endif %}>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== System Health Banner (Full Width) ========== -->
+      <div class="container-fluid px-0">
+        <header
+          id="systemHealth"
+          class="system-health p-3 mb-2 text-center text-uppercase font-weight-bold"
+          style="background-color: {{ status_color }};"
+        >
+          {{ system_status }}
+          {% if has_issue %}
+            <div class="mt-2">
+              <small>
+                <strong>Recommended Action:</strong>
+                {{ issue_message if issue_message else 'Review sensor logs and alerts for details.' }}
+              </small>
+            </div>
+          {% else %}
+            <div class="mt-2">
+              <small>All conditions normal, no user intervention required.</small>
+            </div>
+          {% endif %}
+        </header>
+      </div>
+
+
+      <!-- ========== System Chat (Full Width) ========== -->
+      <div class="glassmorphic-box w-100 my-3">
+        <!-- Title -->
+        <h2 style="color: #00ffe0; text-align: center;">System Chat</h2>
+        <p class="text-center text-muted mb-3">
+          Chat with your robot fleet—ask about anomalies, system health, or give commands. <br>
+          To initiate a user action, begin your command with '#':
+        </p>
+
+        <!-- Chat Container: new structure for mobile-style chat bubbles -->
+        <div id="chatContainer" class="chat-container glassmorphic-box mb-3" style="max-height: 350px; overflow-y: auto;">
+          <!-- Dynamic messages will be appended here by scripts.js.
+              Each message will be wrapped in a container (created by appendChatMessage)
+              that aligns system messages to the left and user messages to the right. -->
+        </div>
+
+        <!-- Input row: Talk (left), text input (middle), Send (right) -->
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <button id="voiceBtn" class="btn btn-info" style="width:120px;">Talk</button>
+          </div>
+          <input type="text" id="chatInput" class="form-control" placeholder="Type your question or command...">
+          <div class="input-group-append">
+            <button id="sendChatBtn" class="btn btn-primary">Send</button>
+          </div>
+        </div>
+      </div>
+
+<!-- Hidden listening indicator (optional) -->
+<div class="text-center mt-2" style="display: none;" id="voiceIndicator">
+  <small class="text-warning">Listening...</small>
+</div>
+    {% endif %}
+
+    <!-- ========== Combined KPI & Chart Row (Container) ========== -->
+    <div class="container my-4">
+      <div class="glassmorphic-box shadow-sm p-3">
+
+        <!-- Centered title at the top of the container -->
+        <h2 style="color: #00ffe0;" class="text-center m-0 mb-3">
+          Performance Trends
+        </h2>
+
+        <!-- KPI Row -->
+        <div class="row">
+          <!-- LEFT COLUMN: KPI metrics -->
+          <div class="col-md-3 mb-3 d-flex flex-column justify-content-around">
+            <!-- Avg Efficiency (Blue) -->
+            <div class="text-center mb-4">
+              <h5 class="card-title text-muted mb-1">Avg Efficiency</h5>
+              <h3 class="card-text font-weight-bold" style="color: #00A0FF;">
+                {% if summary_metrics and summary_metrics.avg_energy_efficiency is defined %}
+                  {{ "%.1f%%"|format(summary_metrics.avg_energy_efficiency or 0) }}
+                {% else %}
+                  0.0%
+                {% endif %}
+              </h3>
+            </div>
+            <hr class="my-2" style="border-color: rgba(255,255,255,0.2);" />
+
+            <!-- Weekly Energy Saved (Yellow) -->
+            <div class="text-center mb-4">
+              <h5 class="card-title text-muted mb-1">Weekly Energy Saved</h5>
+              <h3 class="card-text font-weight-bold" style="color: #FFD600;">
+                {% if summary_metrics and summary_metrics.total_energy_saved is defined %}
+                  {{ summary_metrics.total_energy_saved }} units
+                {% else %}
+                  0.0 units
+                {% endif %}
+              </h3>
+            </div>
+            <hr class="my-2" style="border-color: rgba(255,255,255,0.2);" />
+
+            <!-- System Health (Pink) -->
+            <div class="text-center">
+              <h5 class="card-title text-muted mb-1">System Health*</h5>
+              <h3 class="card-text font-weight-bold" style="color: #32CD32;">
+                {% if summary_metrics and summary_metrics.system_health_score is defined %}
+                  {{ summary_metrics.system_health_score }}
+                {% else %}
+                  0.0
+                {% endif %}
+              </h3>
+            </div>
+          </div> <!-- end .col-md-3 -->
+
+          <!-- RIGHT COLUMN: KPI line chart -->
+          <div class="col-md-9 mb-3">
+            <div class="glassmorphic-box p-3" style="background-color: #121212;">
+              <!-- Plotly Chart -->
+              <div id="kpiChart" style="width: 100%; height: 400px;"></div>
+              <script>
+                /* Data arrays from app.py */
+                const timestamps          = JSON.parse('{{ kpi_data.timestamps|tojson }}') || [];
+                const avgEffHistory       = JSON.parse('{{ kpi_data.avg_eff_history|tojson }}') || [];
+                const energySavedHistory  = JSON.parse('{{ kpi_data.energy_saved_history|tojson }}') || [];
+                const systemHealthHistory = JSON.parse('{{ kpi_data.system_health_history|tojson }}') || [];
+
+                // Trace 1: Avg Efficiency
+                const traceAvgEff = {
+                  x: timestamps,
+                  y: avgEffHistory,
+                  name: 'Avg Efficiency',
+                  mode: 'lines',
+                  line: { color: '#54a0ff' },
+                  yaxis: 'y'
+                };
+
+                // Trace 2: Energy Saved
+                const traceEnergySaved = {
+                  x: timestamps,
+                  y: energySavedHistory,
+                  name: 'Energy Saved',
+                  mode: 'lines',
+                  line: { color: '#f0e130' },
+                  yaxis: 'y2'
+                };
+
+                // Trace 3: System Health
+                const traceSystemHealth = {
+                  x: timestamps,
+                  y: systemHealthHistory,
+                  name: 'System Health',
+                  mode: 'lines',
+                  line: { color: '#32CD32' },
+                  yaxis: 'y'
+                };
+
+                const data = [traceAvgEff, traceEnergySaved, traceSystemHealth];
+
+                const layout = {
+                  paper_bgcolor: '#121212',
+                  plot_bgcolor: '#121212',
+                  font: { color: '#e0e0e0' },
+                  showlegend: true,
+                  xaxis: {
+                    title: 'Timestamp',
+                    type: 'date',
+                    color: '#e0e0e0',
+                    rangeselector: {
+                      font: { color: '#e0e0e0' },
+                      bgcolor: '#2a2a2a',
+                      activecolor: '#54a0ff',
+                      buttons: [
+                        { count: 1, label: '1d', step: 'day', stepmode: 'backward' },
+                        { count: 7, label: '1w', step: 'day', stepmode: 'backward' },
+                        { count: 1, label: '1m', step: 'month', stepmode: 'backward' },
+                        { step: 'all', label: 'All' }
+                      ]
+                    },
+                    rangeslider: { visible: true }
+                  },
+                  yaxis: {
+                    title: 'Score (0–100)',
+                    range: [0, 100],
+                    color: '#e0e0e0'
+                  },
+                  yaxis2: {
+                    title: 'Energy Saved',
+                    overlaying: 'y',
+                    side: 'right',
+                    color: '#e0e0e0'
+                  },
+                  margin: { t: 50, l: 60, r: 60, b: 50 }
+                };
+
+                Plotly.newPlot('kpiChart', data, layout, { responsive: true });
+              </script>
+            </div>
+          </div> <!-- end .col-md-9 -->
+        </div>
+      </div> <!-- end .glassmorphic-box -->
+    </div> <!-- end .container -->
+
+    <!-- Main Dashboard Content (Stacked Layout) -->
+    <div class="container">
+      <!-- TOP BOX: Sensor Output Snapshot (Full Width) -->
+      <div class="glassmorphic-box p-3 mb-3">
+        <h2 style="color: #00ffe0;" class="text-center m-0 mb-3">
+          Sensor Snapshot
+        </h2>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <button class="btn btn-primary" onclick="refreshSnapshot()">Refresh Snapshot</button>
+          <div>
+            <label for="robotSelector" class="mr-2 text-white mb-0">Robot #:</label>
+            <select id="robotSelector" class="form-control d-inline-block" style="width:auto;">
+              <option value="">All</option>
+              {% if robot_numbers %}
+                {% for num in robot_numbers %}
+                  <option value="{{ num }}">{{ num }}</option>
+                {% endfor %}
+              {% else %}
+                <!-- Fallback options if robot_numbers is empty -->
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              {% endif %}
+            </select>
+          </div>
+        </div>
+
+        <input type="hidden" id="userToken" value="{{ request.cookies.get('access_token') }}">
+
+        <p class="text-muted text-center mb-3">
+          Last Updated:
+          <span id="lastUpdated"></span>
+        </p>
+
+        <table id="sensorTable" class="table table-hover table-dark shadow-sm">
+          <thead class="thead-light">
+            <tr>
+              <th>Status</th>
+              <th>Sensor Type</th>
+              <th>Sensor Output</th>
+              <th>Robot #</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated by scripts.js -->
+          </tbody>
+        </table>
+
+        <div class="mt-2">
+          <nav aria-label="Sensor Pagination">
+            <ul class="pagination mb-0">
+              <li class="page-item">
+                <button id="prevPageBtn" class="page-link">Previous</button>
+              </li>
+              <li class="page-item">
+                <button id="nextPageBtn" class="page-link">Next</button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+      
+      <!-- Footnote for System Health Score -->
+      <div class="text-center" style="font-size: 0.8rem; color: #666; margin-top: 10px;">
+        * System Health Score is calculated as: <br>
+        &nbsp;&nbsp;Score = max(0, Avg Efficiency - (Weighted Anomalies) - 0.5 × PM Risk + RL Bonus) <br>
+        &nbsp;&nbsp;Weighted Anomalies = sum of penalties based on anomaly severity (low = 2, medium = 5, high = 10). <br>
+        &nbsp;&nbsp;Final score is normalized to a 0–100 scale.
+      </div>
+      
+  <!-- end #dashboardMain -->
+
+<!-- ========== Scripts ========== -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="{{ url_for('static', filename='scripts.js') }}?v=2"></script>
+
+<!-- Your collapsible camera feeds toggle script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 1) Expand/Collapse Logic
+    const header = document.getElementById('cameraFeedsHeader');
+    const content = document.getElementById('cameraFeedsContent');
+    const icon = document.getElementById('cameraFeedsToggleIcon');
+    let isOpen = false;
+
+    header.addEventListener('click', () => {
+      isOpen = !isOpen;
+      content.style.display = isOpen ? 'block' : 'none';
+      icon.textContent = isOpen ? '▲' : '▼';
+    });
+
+    // 2) Camera Layout Logic
+    //    Always show 4 main slots, then label preview feeds if no cameras are detected.
+    const cameraCount = 0; // Production: Set or fetch the real camera count from your server
+
+    // Force all 4 slots to show (so the user sees the 2×2 potential).
+    document.getElementById('mainSlot1').style.display = 'flex';
+    document.getElementById('mainSlot2').style.display = 'flex';
+    document.getElementById('mainSlot3').style.display = 'flex';
+    document.getElementById('mainSlot4').style.display = 'flex';
+
+    // If you have preview feeds in the code somewhere, update them too:
+    for (let i = 1; i <= 4; i++) {
+      const feedDiv = document.getElementById(`previewFeed${i}`);
+      if (!feedDiv) continue;
+
+      if (i <= cameraCount) {
+        // "Active" feed
+        feedDiv.style.display = 'block';
+      } else {
+        // Mark offline or “None Detected”
+        feedDiv.style.display = 'block';
+        feedDiv.innerHTML = `
+          <h6>Camera ${i}</h6>
+          <p class="preview-offline">None Detected.</p>
+        `;
+      }
+    }
+
+    // 3) Show "No cameras detected" message in the main area if cameraCount=0
+    if (cameraCount === 0) {
+      const mainArea = document.getElementById("cameraMainArea");
+      mainArea.insertAdjacentHTML(
+        'afterbegin',
+        '<p class="no-cameras-msg text-center" style="color: #007bff;">No cameras detected at this time.</p>'
+      );
+    }
+
+    // 4) Optionally initialize drag-and-drop if using camera_feeds.js
+    if (typeof initCameraFeeds === 'function') {
+      initCameraFeeds();
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Energy Optimization Dashboard</title>
+  <!-- Favicon -->
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  {% if not is_authenticated %}
+  <div class="container mt-5">
+    <!-- Favicon (or small logo) centered -->
+    <div class="text-center mb-3">
+      <img 
+        src="{{ url_for('static', filename='favicon.ico') }}" 
+        alt="Vestavio Icon" 
+        style="width: 64px; height: 64px;"
+      >
+    </div>
+    <h2 class="text-center text-white">Welcome to Vestavio Dashboard!</h2>
+    <p class="text-center text-muted">
+      Please <a href="{{ url_for('login') }}">log in</a> to view your dashboard data.
+    </p>
+  </div>
+
+  <!-- Login Modal -->
+  <div class="modal fade" id="loginModal" tabindex="-1" role="dialog"
+       aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="loginModalLabel">Please Log In</h5>
+          <button type="button" class="close" data-dismiss="modal"
+                  aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>You must log in to access your dashboard. Click the button below to go to the login page.</p>
+        </div>
+        <div class="modal-footer">
+          <a href="{{ url_for('login') }}" class="btn btn-primary">Go to Login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function(){
+       $('#loginModal').modal('show');
+    });
+  </script>
+  {% else %}
+    <!-- Personalized Greeting -->
+    <div class="container mt-3">
+      <h3 class="text-white text-center">Welcome, {{ username }}!</h3>
+    </div>
+
+    <!-- ========== Milestone Banner (Full Width) ========== -->
+    <div class="container-fluid px-0">
+      <div class="alert alert-success text-center mx-3 my-3" role="alert">
+        {% if milestone %}
+          <strong>🎉 {{ milestone }} 🎉</strong>
+        {% else %}
+          <strong>No milestones yet</strong>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ========== Use Case Information Banner with Dropdown (Full Width) ========== -->
+    <div class="container-fluid px-0">
+      <div class="mb-3 text-center py-2 bg-dark">
+        <form id="useCaseForm">
+          <label for="useCaseSelect" class="text-white mr-2">Current Use Case:</label>
+          <select id="useCaseSelect" name="use_case" class="form-control d-inline-block" style="width: auto;">
+            <option value="unspecified" {% if not use_case or use_case|lower == 'unspecified' %}selected{% endif %}>Unspecified</option>
+            <option value="6dof" {% if use_case|lower == '6dof' %}selected{% endif %}>6DOF</option>
+            <option value="9dof" {% if use_case|lower == '9dof' %}selected{% endif %}>9DOF</option>
+            <option value="warehouse" {% if use_case|lower == 'warehouse' %}selected{% endif %}>Warehouse</option>
+            <option value="urban" {% if use_case|lower == 'urban' %}selected{% endif %}>Urban</option>
+          </select>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========== KPI Row (Container) ========== -->
+    <div class="container my-4">
+      <div class="row text-center">
+        <!-- Card 1: Avg Efficiency -->
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm dark-card">
+            <div class="card-body">
+              <h5 class="card-title text-muted">Avg Efficiency</h5>
+              <h3 class="card-text font-weight-bold text-white">
+                {% if summary_metrics and summary_metrics.avg_energy_efficiency is defined %}
+                  {{ "%.1f%%"|format(summary_metrics.avg_energy_efficiency or 0) }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </h3>
+            </div>
+          </div>
+        </div>
+        <!-- Card 2: Energy Saved -->
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm dark-card">
+            <div class="card-body">
+              <h5 class="card-title text-muted">Energy Saved</h5>
+              <h3 class="card-text font-weight-bold text-white">
+                {% if summary_metrics and summary_metrics.total_energy_saved is defined %}
+                  {{ summary_metrics.total_energy_saved }} units
+                {% else %}
+                  N/A
+                {% endif %}
+              </h3>
+            </div>
+          </div>
+        </div>
+        <!-- Card 3: System Health Score -->
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm dark-card">
+            <div class="card-body">
+              <h5 class="card-title text-muted">System Health*</h5>
+              <h3 class="card-text font-weight-bold text-white">
+                {% if summary_metrics and summary_metrics.system_health_score is defined %}
+                  {{ summary_metrics.system_health_score }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== System Health Banner (Full Width) ========== -->
+    <div class="container-fluid px-0">
+      <header
+        id="systemHealth"
+        class="system-health {{ status_color }} p-3 mb-2 text-center text-uppercase font-weight-bold"
+      >
+        {{ system_status }}
+        {% if has_issue %}
+          <div class="mt-2">
+            <small>
+              <strong>Recommended Action:</strong>
+              {{ issue_message if issue_message else 'Review sensor logs and alerts for details.' }}
+            </small>
+          </div>
+        {% else %}
+          <div class="mt-2">
+            <small>All conditions normal, no user intervention required.</small>
+          </div>
+        {% endif %}
+      </header>
+    </div>
+
+    <!-- ========== Main Dashboard Content (Container) ========== -->
+    <div class="container">
+
+      <!-- ========== Sensor Snapshot Section ========== -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-white text-center flex-grow-1 m-0">Sensor Output Snapshot</h2>
+        <div class="text-right ml-3">
+          <button class="btn btn-primary" onclick="refreshSnapshot()">Refresh Snapshot</button>
+        </div>
+      </div>
+
+      <!-- Hidden input to store the JWT token -->
+      <input type="hidden" id="userToken" value="{{ request.cookies.get('token') }}">
+
+      <p class="text-muted text-center mb-3">
+        Last Updated:
+        <span id="lastUpdated"></span>
+      </p>
+
+      <table id="sensorTable" class="table table-hover table-dark shadow-sm">
+        <thead class="thead-light">
+          <tr>
+            <th>Status</th>
+            <th>Sensor Type</th>
+            <th>Sensor Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sensor in sensors %}
+            <tr>
+              <td>
+                {% if sensor.status.lower() == 'operational' %}
+                  <span class="green-circle" title="Operational Sensor"></span>
+                {% else %}
+                  <span class="red-circle" title="Sensor Issue"></span>
+                {% endif %}
+              </td>
+              <td>{{ sensor.sensor_name }}</td>
+              <td>
+                {% if sensor.sensor_output is not none %}
+                  {% set num_val = sensor.sensor_output|float %}
+                  {{ "%.2f"|format(num_val) }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <script>
+        function formatToLocalTime(utcString) {
+          if (!utcString) return '';
+          const dateObj = new Date(utcString + 'Z');
+          return dateObj.toLocaleString(); 
+        }
+
+        function refreshSnapshot() {
+          const token = document.getElementById('userToken')?.value;
+          if (!token) {
+            alert("No token found! Please log in again.");
+            return;
+          }
+
+          fetch('/snapshot', {
+            method: 'GET',
+            headers: {
+              'Authorization': 'Bearer ' + token
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              console.error("Snapshot error:", data.error);
+              alert("Failed to refresh snapshot.");
+              return;
+            }
+            updateSensorTable(data.sensors);
+            document.getElementById('lastUpdated').textContent = formatToLocalTime(data.last_updated) || '';
+            updateSystemHealth(data);
+            updateKpiMetrics(data);
+            updateMilestone(data);
+          })
+          .catch(err => {
+            console.error("Error refreshing snapshot:", err);
+            alert("Error refreshing snapshot. See console for details.");
+          });
+        }
+
+        function updateSensorTable(sensors) {
+          const tableBody = document.querySelector('#sensorTable tbody');
+          tableBody.innerHTML = '';
+          sensors.forEach(sensor => {
+            const tr = document.createElement('tr');
+            const statusTd = document.createElement('td');
+            statusTd.innerHTML = sensor.status && sensor.status.toLowerCase() === 'operational'
+                                  ? '<span class="green-circle" title="Operational Sensor"></span>'
+                                  : '<span class="red-circle" title="Sensor Issue"></span>';
+            tr.appendChild(statusTd);
+            const nameTd = document.createElement('td');
+            nameTd.textContent = sensor.sensor_name || 'Unknown';
+            tr.appendChild(nameTd);
+            const outputTd = document.createElement('td');
+            if (sensor.sensor_output === null || sensor.sensor_output === undefined) {
+              outputTd.textContent = 'N/A';
+            } else {
+              const num = parseFloat(sensor.sensor_output);
+              outputTd.textContent = !isNaN(num) ? num.toFixed(2) : sensor.sensor_output;
+            }
+            tr.appendChild(outputTd);
+            tableBody.appendChild(tr);
+          });
+        }
+
+        // Dummy functions for updating system health, KPI metrics, and milestone.
+        function updateSystemHealth(data) {
+          // Implement system health updates based on your backend response.
+        }
+        function updateKpiMetrics(data) {
+          // Implement KPI metrics updates here.
+        }
+        function updateMilestone(data) {
+          // If milestone exists, update it; otherwise, set placeholder text.
+          const milestoneElem = document.querySelector('.alert.alert-success');
+          if (data.milestone) {
+            milestoneElem.innerHTML = '<strong>🎉 ' + data.milestone + ' 🎉</strong>';
+          } else {
+            milestoneElem.innerHTML = '<strong>No milestones yet</strong>';
+          }
+        }
+      </script>
+
+      <!-- ========== Continuous Optimization Message ========== -->
+      <section class="mt-5">
+        <h2 class="text-white text-center">System Optimization</h2>
+        <p class="text-center text-muted mb-4">
+          The system continuously optimizes conditions in the background, requiring no user input.
+          You can trust it to handle efficiency and stability autonomously.
+        </p>
+      </section>
+
+      {% if sensors|length > 0 %}
+      <!-- ========== Progress & Achievements Section ========== -->
+      <section class="p-3 mb-4 shadow-sm rounded dark-section">
+        <h4 class="text-center mb-3 text-white">Recent Milestones</h4>
+        <ul class="list-unstyled text-center text-muted">
+          <li>• Achieved a 5% energy cost reduction this week</li>
+          <li>• Automatically resolved last anomaly at {{ anomaly_resolved_time }}, no user action required</li>
+          <li>• Maintained 99.9% uptime for all critical sensors</li>
+        </ul>
+        <p class="text-center text-muted small">
+          <!-- Additional notes -->
+        </p>
+        <div class="d-flex justify-content-center mt-3">
+          <a href="/logs" class="btn btn-secondary mr-2">View Logs</a>
+          <a href="/alerts" class="btn btn-secondary">Manage Alerts</a>
+        </div>
+      </section>
+      {% else %}
+      <!-- If no sensors, still render an empty milestones section with buttons -->
+      <section class="p-3 mb-4 shadow-sm rounded dark-section">
+        <h4 class="text-center mb-3 text-white">Recent Milestones</h4>
+        <p class="text-center text-muted">No milestones yet</p>
+        <div class="d-flex justify-content-center mt-3">
+          <a href="/logs" class="btn btn-secondary mr-2">View Logs</a>
+          <a href="/alerts" class="btn btn-secondary">Manage Alerts</a>
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- ========== User Action Form ========== -->
+      <section>
+        <h2 class="text-white text-center">User Action</h2>
+        <p class="text-center text-muted mb-3">
+          In rare cases where you'd like to trigger a custom action, use the form below:
+        </p>
+        <form id="action-form" method="POST" action="/send_action" class="mb-5 mx-auto" style="max-width: 500px;">
+          <div class="form-group">
+            <label for="actionInput" class="text-white">Action Details</label>
+            <input type="text" class="form-control" id="actionInput" name="action" placeholder="e.g., 'Calibrate Sensor X'" required>
+          </div>
+          <div class="text-center">
+            <button type="submit" class="btn btn-success">Send Action</button>
+            <a href="/action_logs" class="btn btn-secondary ml-2">Action Logs</a>
+          </div>
+        </form>
+      </section>
+
+      <!-- Logout and Subscription Buttons Section -->
+      <div class="logout-section mt-3 text-center" style="padding-bottom: 20px;">
+        <a href="/subscription" class="btn btn-secondary mr-2">Subscription</a>
+        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-primary">Logout</button>
+        </form>
+      </div>
+
+      <!-- Footnote for System Health Score -->
+      <div class="text-center" style="font-size: 0.8rem; color: #666; margin-top: 10px;">
+        * System Health Score is calculated as: <br>
+        &nbsp;&nbsp;Score = max(0, Avg Efficiency - (Weighted Anomalies) - 0.5 × PM Risk + RL Bonus) <br>
+        &nbsp;&nbsp;Weighted Anomalies = sum of penalties based on anomaly severity (low = 2, medium = 5, high = 10). <br>
+        &nbsp;&nbsp;Final score is normalized to a 0–100 scale.
+      </div>
+
+      <!-- ========== Loading Indicator ========== -->
+      <div id="loading" class="text-center" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <p class="text-muted mt-2">Updating data...</p>
+      </div>
+    </div> <!-- end .container -->
+  {% endif %}
+
+  <!-- ========== Scripts ========== -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+
+</body>
+</html>

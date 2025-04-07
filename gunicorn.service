@@ -1,0 +1,15 @@
+[Unit]
+Description=Gunicorn instance to serve your Flask app
+After=network.target
+
+[Service]
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/home/ec2-user/energy_optimization_project/A_Core_App_Files
+Environment="PATH=/home/ec2-user/miniconda3/envs/fresh_env/bin"
+EnvironmentFile=/home/ec2-user/energy_optimization_project/.env
+ExecStart=/home/ec2-user/miniconda3/envs/fresh_env/bin/gunicorn app:app -b 0.0.0.0:5002 --workers 2
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

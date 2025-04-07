@@ -1,0 +1,13 @@
+{
+    "http://127.0.0.1:5002/send_sensor_data": {
+        "endpoint": "http://127.0.0.1:5002/send_sensor_data",
+        "iterations": 10,
+        "average_time": 0.31509069169915166,
+        "min_time": 0.3127382079983363,
+        "max_time": 0.3205677919977461,
+        "success_count": 10,
+        "failure_count": 0,
+        "failures": [],
+        "success_rate": 1.0
+    }
+}

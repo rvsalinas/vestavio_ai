@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Action Confirmation - Vestavio Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body { background-color: #343a40; }
+    .confirmation-container {
+      margin-top: 100px;
+    }
+  </style>
+  <!-- Auto redirect after 5 seconds -->
+  <meta http-equiv="refresh" content="5; url={{ url_for('dashboard') }}">
+</head>
+<body>
+  <div class="container confirmation-container">
+    <div class="alert alert-success text-center">
+      <h2>Action Sent</h2>
+      <p>{{ message }}</p>
+      <p>You will be redirected to your dashboard shortly. If not, <a href="{{ url_for('dashboard') }}">click here</a>.</p>
+    </div>
+  </div>
+</body>
+</html>
