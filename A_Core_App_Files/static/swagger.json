@@ -1,0 +1,266 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Energy Optimization API",
+    "description": "API for sensor data, health checks, feedback, simulation triggers, and more.",
+    "version": "1.1.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5002",
+      "description": "Local dev server"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check endpoint",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "Server is up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Server is running"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/snapshot": {
+      "get": {
+        "summary": "Get the latest sensor snapshot plus summary metrics",
+        "operationId": "getSnapshot",
+        "responses": {
+          "200": {
+            "description": "Sensor snapshot and summary retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sensors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "sensor_name": { "type": "string" },
+                          "sensor_output": { "type": "number" },
+                          "status": { "type": "string" }
+                        }
+                      }
+                    },
+                    "system_status": {
+                      "type": "string",
+                      "example": "SYSTEM FUNCTIONING PROPERLY"
+                    },
+                    "status_color": {
+                      "type": "string",
+                      "example": "green"
+                    },
+                    "last_updated": {
+                      "type": "string",
+                      "example": "2025-01-26 19:26:28"
+                    },
+                    "summary_metrics": {
+                      "type": "object",
+                      "properties": {
+                        "avg_energy_efficiency": { "type": "number", "example": 85.5 },
+                        "total_energy_saved": { "type": "number", "example": 120 },
+                        "total_anomalies": { "type": "number", "example": 5 }
+                      }
+                    },
+                    "milestone": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "Achieved new record for efficiency!"
+                    },
+                    "has_issue": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "issue_message": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "Review sensor logs for details."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/send_sensor_data": {
+      "post": {
+        "summary": "Submit sensor data to the system",
+        "operationId": "sendSensorData",
+        "requestBody": {
+          "description": "Sensor data payload",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sensor_data": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "output": { "type": "number" },
+                        "status": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Data processed successfully"
+          },
+          "400": {
+            "description": "Missing or invalid payload"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/send_feedback": {
+      "post": {
+        "summary": "Send feedback data to the system",
+        "operationId": "sendFeedback",
+        "requestBody": {
+          "description": "User feedback payload",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "feedback": {
+                    "type": ["string", "array", "object"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feedback received successfully"
+          },
+          "400": {
+            "description": "No feedback provided"
+          },
+          "500": {
+            "description": "Failed to process feedback"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "User login to obtain JWT token",
+        "operationId": "loginUser",
+        "requestBody": {
+          "description": "User credentials",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful, returns token"
+          },
+          "400": {
+            "description": "Missing credentials"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          },
+          "500": {
+            "description": "DB error or other"
+          }
+        }
+      }
+    },
+    "/run_genesis_simulation": {
+      "post": {
+        "summary": "Trigger a Genesis simulation",
+        "operationId": "runGenesisSimulation",
+        "requestBody": {
+          "description": "Simulation configuration payload",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "simulation_type": {
+                    "type": "string",
+                    "example": "rigid_body"
+                  },
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "file": { "type": "string", "example": "/path/to/object.urdf" },
+                      "simulation_steps": { "type": "integer", "example": 100 },
+                      "scale": { "type": "number", "example": 1.0 }
+                    }
+                  },
+                  "show_viewer": {
+                    "type": "boolean",
+                    "example": false
+                  }
+                },
+                "required": ["simulation_type", "parameters"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Simulation completed successfully"
+          },
+          "400": {
+            "description": "Invalid or missing simulation_type/parameters"
+          },
+          "500": {
+            "description": "Error running simulation"
+          }
+        }
+      }
+    }
+  },
+  "components": {}
+}

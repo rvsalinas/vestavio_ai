@@ -1,0 +1,501 @@
+/* -------------------------------------------------------------------
+   1. Universal Dark Theme (Original Styles) (UPDATED)
+------------------------------------------------------------------- */
+
+body {
+    background-color: #121212; /* near-black background */
+    color: #f0f0f0;            /* light text */
+    font-family: "Helvetica", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+a,
+a:hover,
+a:focus,
+a:active {
+    color: #54a0ff; /* brand accent color if desired */
+    text-decoration: none;
+}
+
+/* Optional general containers in a dark theme */
+.dark-card {
+    background-color: #1f1f1f; /* a slightly lighter shade for cards */
+    border: none;
+}
+
+.dark-section {
+    background-color: #1f1f1f; /* consistent background for sections */
+}
+
+.text-muted {
+    color: #999 !important;
+}
+
+/* Table styling for dark mode */
+.table-dark {
+    background-color: #1f1f1f;
+    color: #f0f0f0;
+}
+.table-dark thead th {
+    background-color: #444;
+    color: #fff;
+}
+.table-dark tbody tr:hover {
+    background-color: #2a2a2a;
+}
+.table-dark td,
+.table-dark th {
+    border-color: #333;
+}
+
+/* Circle indicators for sensor status */
+.green-circle {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background-color: #00ffe0; /* bootstrap green */
+    border-radius: 50%;
+    margin-right: 8px;
+}
+.red-circle {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background-color: #FF00FF; /* bootstrap red */
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+/* System health banner */
+.system-health {
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 4px;
+    color: #000000;
+    background-color: #00ffe0; /* teal background when functioning properly */
+}
+.system-health.red {
+    background-color: #FF00FF; /* magenta background when not functioning properly */
+}
+
+/* Milestone banner or other success alert area */
+.alert-success {
+    background-color: rgb(0, 89, 255) !important; /* or #ff00ff if you prefer hex */
+    border-color: rgb(0, 89, 255) !important;
+    color: #000 !important; 
+}
+
+/* Loader styling */
+#loading {
+    text-align: center;
+    margin: 20px 0;
+}
+#loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* NEW: Sidebar and Main Content Positioning */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 240px; /* Adjust to your preference */
+    background-color: #1f1f1f;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    z-index: 1000; /* Ensure the sidebar is on top */
+}
+
+.sidebar.collapsed {
+    width: 60px; /* or whatever collapsed width you prefer */
+}
+
+.main-content {
+    margin-left: 240px; /* same as .sidebar width */
+    padding: 20px;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease;
+}
+
+/* If sidebar is collapsed, shift content left accordingly */
+.sidebar.collapsed ~ .main-content {
+    margin-left: 60px; /* or whatever matches the collapsed width */
+}
+
+/* -------------------------------------------------------------------
+   2. Profile Dropdown (Original Styles)
+------------------------------------------------------------------- */
+
+.profile-dropdown .dropdown-menu {
+    background-color: #1f1f1f;
+    border: 1px solid #333;
+}
+
+.profile-dropdown .dropdown-item {
+    color: #f0f0f0;
+}
+
+.profile-dropdown .dropdown-item:hover,
+.profile-dropdown .dropdown-item:focus {
+    background-color: #2a2a2a;
+    color: #fff;
+}
+
+/* Optional arrow color for the dropdown toggle if needed */
+.profile-dropdown .dropdown-toggle::after {
+    border-top-color: #f0f0f0;
+}
+
+/* -------------------------------------------------------------------
+   3. Minimal Left Sidebar
+------------------------------------------------------------------- */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px; /* expanded width */
+    height: 100vh;
+    background-color: #1c1c1c;
+    padding: 1rem;
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+    z-index: 999; /* ensures sidebar stays on top */
+    transition: width 0.3s ease; /* smooth collapse animation */
+}
+
+/* Collapsed: narrower sidebar */
+.sidebar.collapsed {
+    width: 60px;
+    padding: 1rem 0.5rem; /* minimal horizontal padding */
+}
+
+/* Sidebar Logo */
+.sidebar-logo {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+.sidebar-logo img {
+    max-width: 80px; /* updated to limit logo size */
+    height: auto;
+}
+
+/* Shrink the logo in collapsed mode */
+.sidebar.collapsed .sidebar-logo img {
+    max-width: 40px; /* or whatever size you want in collapsed state */
+    transition: max-width 0.3s ease;
+}
+
+/* Nav links */
+.nav-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li {
+    margin-bottom: 1rem;
+}
+
+.nav-links li span {
+    font-weight: 600;
+    cursor: default;
+}
+
+.nav-links a {
+    color: #f0f0f0;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.nav-links a:hover {
+    color: #54a0ff;
+}
+
+/* Hide or shrink nav text in collapsed mode */
+.sidebar.collapsed .nav-links li span,
+.sidebar.collapsed .nav-links li a {
+    font-size: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: font-size 0.3s ease;
+}
+
+/* Hide bullet points in sub-lists when collapsed */
+.sidebar.collapsed .nav-links li ul {
+    list-style: none;
+}
+
+/* Hide logout button entirely in collapsed mode */
+.sidebar.collapsed .logout-button {
+    display: none !important;
+}
+
+/* Toggle Button Style */
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* MAIN CONTENT SHIFT */
+#dashboardMain {
+    /* Keep the left margin matching the expanded sidebar width */
+    margin-left: 220px; 
+    /* Ensure the container occupies the remaining space, without overflow cutoff */
+    width: calc(100% - 220px);
+    box-sizing: border-box; /* includes padding in total width */
+    padding: 1rem;
+    transition: margin-left 0.3s ease; /* smooth collapse animation */
+    /* Let content display fully without hidden scrollbars */
+    overflow: visible;
+}
+
+.sidebar.collapsed ~ #dashboardMain {
+    /* Collapsed: narrower sidebar => narrower margin */
+    margin-left: 60px;
+    width: calc(100% - 60px);
+    box-sizing: border-box;
+    padding: 1rem;
+    transition: margin-left 0.3s ease;
+    overflow: visible;
+}
+
+/* -------------------------------------------------------------------
+   4. "Boxed" Layout for Two-Column Approach
+------------------------------------------------------------------- */
+
+/* .dashboard-box: a simple "card" style if you want to box each section
+   (Sensor Output, System Optimization, etc.) with a border & padding.
+   Apply this class to <section> or <div> in dashboard.html as desired.
+*/
+.dashboard-box {
+    background-color: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* -------------------------------------------------------------------
+   5. Glassmorphism Class
+------------------------------------------------------------------- */
+
+/* .glassmorphic-box: now solid black (#000000) */
+.glassmorphic-box {
+    background: #1e1e1e; /* solid black */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2); /* subtle light border */
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.chat-container {
+    background-color: #1e1e1e !important;
+  }
+
+/* Dark background for the KPI chart container on dashboard.html */
+#kpiChart {
+    background-color: #1e1e1e;
+    width: 100%;
+    height: 400px;
+}
+
+/* -------------------------------------------------------------------
+   6. Camera Layout & Preview Feeds (New or Updated)
+------------------------------------------------------------------- */
+
+/* Container for the main camera area + preview sidebar (two-column layout) */
+.camera-layout {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    min-height: 400px;
+    margin-bottom: 30px;
+}
+
+/* Main camera area using a 2×2 grid by default */
+.camera-main-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;  /* 2 columns */
+    grid-auto-rows: 250px;          /* each row is 250px tall (adjust as you like) */
+    gap: 15px;                      /* spacing between slots */
+    border: 1px solid #333;
+    background-color: #1e1e1e;
+    position: relative;
+    min-height: 400px;  /* or remove if you rely on grid rows */
+    padding: 10px;
+  }
+  
+  /* Each slot becomes a grid item, no need for margins here */
+  .camera-slot {
+    border: 1px dashed #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    cursor: move; /* or pointer */
+    position: relative;
+  }
+  
+  /* The slot label in the top-left corner */
+  .camera-slot h5 {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    margin: 0;
+    font-size: 0.9rem;
+    color: #fff;
+    background-color: rgba(0,0,0,0.5);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  
+  /* On smaller screens, switch to 1 column so it doesn't get squished */
+  @media (max-width: 768px) {
+    .camera-layout {
+      flex-direction: column;
+    }
+    .camera-main-area {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;    /* single column in portrait phone */
+      grid-auto-rows: 250px;
+      gap: 15px;
+    }
+    .camera-preview-sidebar {
+      width: 100%;
+      margin-top: 20px;
+    }
+  }
+
+/* -------------------------------------------------------------------
+   7. Chat Bubble Styles
+------------------------------------------------------------------- */
+
+.chat-bubble-container {
+    display: flex;
+    margin-bottom: 10px;
+    padding: 0 10px;
+}
+
+.chat-bubble {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+    margin-bottom: 5px;
+}
+
+/* System responses: left aligned */
+.chat-bubble-left {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: 1px solid #444;
+    border-top-left-radius: 0;
+    align-self: flex-start;
+}
+
+/* User/You responses: right aligned */
+.chat-bubble-right {
+    background-color: #007bff;
+    color: #ffffff;
+    border: 1px solid #0056b3;
+    border-top-right-radius: 0;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+/* ================================
+   Sidebar Area
+================================ */
+
+/* Right sidebar for camera previews (up to 4 small feeds) */
+.camera-preview-sidebar {
+    width: 250px;
+    border: 1px solid #333;
+    background-color: #1e1e1e;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.camera-preview-sidebar h4 {
+    color: #00ffe0;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Each preview feed container */
+.preview-feed {
+    border: 1px solid #444;
+    background-color: #2a2a2a;
+    text-align: center;
+    padding: 8px;
+    cursor: move; /* or pointer */
+    position: relative;
+}
+
+.preview-feed h6 {
+    margin: 0 0 5px 0;
+    font-size: 0.85rem;
+    color: #54a0ff;
+}
+
+.preview-feed img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.preview-offline {
+    color: #888;
+    font-style: italic;
+}
+
+.sidebar.collapsed .sidebar-optimization {
+    display: none !important;
+  }
+  
+/* Add this at the bottom of styles.css, or wherever you keep your responsive rules. */
+@media (max-width: 768px) {
+    .camera-layout {
+      flex-direction: column; /* Stack main area and preview vertically */
+    }
+  
+    /* Make the main camera area full-width on small screens */
+    .camera-main-area {
+      width: 100%;
+      margin-bottom: 20px; /* Spacing below main area before sidebar */
+    }
+  
+    .camera-preview-sidebar {
+      width: 100%;   /* Full width for the sidebar too */
+      margin-top: 20px; /* Spacing above the preview section */
+    }
+  
+    /* Slightly reduce or adapt slot heights for mobile */
+    .camera-slot {
+      min-height: 150px;
+      height: auto;  /* Allows the slot to grow if needed */
+    }
+  }
+
+  .sidebar.collapsed .sidebar-optimization {
+  display: none !important;
+}
