@@ -26,11 +26,6 @@ PURPOSE:
         weather_data = env_module.fetch_current_weather()
         # Do something with weather_data
 
-ENV FILE EXAMPLE (partial):
-    TIMEZONE=America/Chicago
-    LOCATION=Dallas
-    WEATHER_API_KEY=5dabc34ad757a5f7a71da15fc8a409d4
-
 """
 
 import os
